@@ -1,0 +1,38 @@
+resource_types:
+
+resources:
+- name: version
+  type: semver
+  source:
+    driver: git
+    initial_version: 0.1.0
+    uri: https://github.com/brandocorp-concourse/concourse-ubuntu-build.git
+    branch: master
+    file: version
+    username: ((github-username))
+    password: ((github-access-token))    
+- name: master-branch
+  type: git
+  source:
+    access_token: ((github-access-token))
+    username: ((github-username))
+    uri: https://github.com/brandocorp-concourse/concourse-ubuntu-build.git
+    branch: master
+- name: ubuntu-build-image
+  type: docker-image
+  source:
+    repository: brandocorp/concourse-ubuntu-build
+    username: ((docker-username))
+    password: ((docker-password))
+
+jobs:
+- name: build
+  plan:
+    - get: version
+      trigger: true
+    - get: master-branch
+    - put: ubuntu-build-image
+      params:
+        build: master-branch
+        tag_file: version
+        tag_as_latest: true
